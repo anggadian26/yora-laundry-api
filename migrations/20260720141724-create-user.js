@@ -13,19 +13,19 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       name: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING(100)
       },
       username: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING(50)
       },
       email: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING(100)
       },
       phone: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING(20)
       },
       password: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING(255)
       },
       is_active: {
         type: Sequelize.BOOLEAN
