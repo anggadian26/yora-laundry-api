@@ -1,6 +1,8 @@
 const { User } = require('../models')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const Validator = require('fastest-validator')
+const v = new Validator();
 require('dotenv').config();
 
 const JWT_SECRET = process.env.JWT_SECRET
@@ -25,6 +27,9 @@ const signIn = async (req, res, next) => {
          return res.status(401).json({ status: "FAILED", message: "Wrong Password" });
       }
 
+      // update last login 
+      await User.update({last_login_at: new Date()}, {where: {id: user.id}})
+
       const payload = {
          username: user.username,
          email: user.email,
@@ -48,6 +53,110 @@ const signIn = async (req, res, next) => {
 }
 
 
+const addUser = async (req, res) => {
+   try {
+      const schema = {
+         name: {type: "string", min:2, max:100, optional:false},
+         username: {type: "string", min:2, max:50, optional:false},
+         email: {type: "email", min:2, max:100, optional:false},
+         phone: {type: "string", min:2, max:100, optional:false},
+         password: {type: "string", min:3, max:255, optional:false}
+      }
+      const hashedPassword = bcrypt.hashSync(req.body.password, 10);
+      
+      // validasi data
+      const validationResult = v.validate(req.body, schema)
+      if (validationResult !== true) {
+         return res.status(400).json({
+            message: "Validation Failed",
+            data: validationResult
+         })
+      }
+
+      const data = {
+         role_id: 2,
+         name: req.body.name,
+         username: req.body.username,
+         email: req.body.email,
+         phone: req.body.phone,
+         password: hashedPassword,
+         is_active: true
+      }
+
+      
+      const existUser = await User.findOne({where: {username: req.body.username}})
+      if(existUser) {
+         return res.status(400).json({
+            message: 'Users already exist'
+         });
+      }
+
+      const result = await User.create(data)
+
+      return res.status(201).json({
+         message: "Success",
+         data: result
+      })
+
+   } catch (err) {
+      res.status(500).json({
+         message: 'Something wrong',
+         data: err
+      })
+   }
+}
+
+
+const updateUser = async (req, res) => {
+   const {id} = req.params
+
+   try {
+      const data = {
+         name: req.body.name,
+         username: req.body.username,
+         email: req.body.email,
+         phone: req.body.phone,
+         password: req.body
+      }
+
+      const schema = {
+         name: {type: "string", min:2, max:100, optional:false},
+         username: {type: "string", min:2, max:50, optional:false, unique: true},
+         email: {type: "email", min:2, max:100, optional:false},
+         phone: {type: "string", min:2, max:100, optional:false, unique:true},
+         pasword: {type: "password", min:3, max:255, optional:false}
+      }
+
+      // validasi data 
+      const validationResult = v.validate(data, schema);
+      if (validationResult !== true) {
+         return res.status(400).json({
+            message: "Validation Failed",
+            data: validationResult
+         })
+      }
+
+      // update data
+      await User.update(data, {where: {id: id}})
+      return res.status(200).json({
+         message: "Update User Success",
+         data: {
+            id: id,
+            ...req.body
+         }
+      })
+
+   } catch (err) {
+      res.status(500).json({
+         message: 'Something wrong',
+         data: err
+      })
+   }
+}
+
+
 module.exports = {
    signIn,
+   addUser,
+   updateUser,
 }
