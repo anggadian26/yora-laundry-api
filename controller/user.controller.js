@@ -62,7 +62,6 @@ const addUser = async (req, res) => {
          phone: {type: "string", min:2, max:100, optional:false},
          password: {type: "string", min:3, max:255, optional:false}
       }
-      const hashedPassword = bcrypt.hashSync(req.body.password, 10);
       
       // validasi data
       const validationResult = v.validate(req.body, schema)
@@ -72,7 +71,8 @@ const addUser = async (req, res) => {
             data: validationResult
          })
       }
-
+      
+      const hashedPassword = bcrypt.hashSync(req.body.password, 10);
       const data = {
          role_id: 2,
          name: req.body.name,
@@ -111,30 +111,35 @@ const updateUser = async (req, res) => {
    const {id} = req.params
 
    try {
-      const data = {
-         name: req.body.name,
-         username: req.body.username,
-         email: req.body.email,
-         phone: req.body.phone,
-         password: req.body
-      }
-
       const schema = {
          name: {type: "string", min:2, max:100, optional:false},
-         username: {type: "string", min:2, max:50, optional:false, unique: true},
+         username: {type: "string", min:2, max:50, optional:false},
          email: {type: "email", min:2, max:100, optional:false},
-         phone: {type: "string", min:2, max:100, optional:false, unique:true},
-         pasword: {type: "password", min:3, max:255, optional:false}
+         phone: {type: "string", min:2, max:100, optional:false},
+         password: {type: "string", min:3, max:255, optional:false},
+         is_active: {type: "boolean", default:true}
       }
-
-      // validasi data 
-      const validationResult = v.validate(data, schema);
+      
+      // validasi data
+      const validationResult = v.validate(req.body, schema)
       if (validationResult !== true) {
          return res.status(400).json({
             message: "Validation Failed",
             data: validationResult
          })
       }
+      const hashedPassword = bcrypt.hashSync(req.body.password, 10);
+      
+      const data = {
+         role_id: 2,
+         name: req.body.name,
+         username: req.body.username,
+         email: req.body.email,
+         phone: req.body.phone,
+         password: hashedPassword,
+         is_active: req.body.is_active
+      }
+
 
       // update data
       await User.update(data, {where: {id: id}})
@@ -142,7 +147,7 @@ const updateUser = async (req, res) => {
          message: "Update User Success",
          data: {
             id: id,
-            ...req.body
+            ...data
          }
       })
 
