@@ -8,5 +8,6 @@ const authMiddleware = require('../middleware/auth')
 router.post('/login', userController.signIn);
 router.post('/add-user', userController.addUser);
 router.patch('/:id', authMiddleware.auth, userController.updateUser);
+router.delete('/:id', authMiddleware.auth, userController.destroyUser);
 
 module.exports = router;

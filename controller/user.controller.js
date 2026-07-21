@@ -159,9 +159,26 @@ const updateUser = async (req, res) => {
    }
 }
 
+const destroyUser = async (req, res) => {
+   try {
+      const {id} = req.params
+      const deleteResult = await User.destroy({where: {id: id}})
+      return res.status(200).json({
+         message: "Deleted Data Success",
+         data: deleteResult
+      })
+   } catch (err) {
+      res.status(500).json({
+         message: 'Something wrong',
+         data: err.message
+      })
+   }
+}
+
 
 module.exports = {
    signIn,
    addUser,
    updateUser,
+   destroyUser
 }
