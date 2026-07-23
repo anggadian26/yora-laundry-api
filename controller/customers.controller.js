@@ -18,7 +18,20 @@ const getAllCustomer = async (req, res) => {
 }
 
 const getCustomerById = async (req, res) => {
+   const {id} = req.params 
+   try {
+      const data = await Customers.findByPk(id)
 
+      return res.status(200).json({
+         message: 'Get Customer By Id',
+         data: data
+      })
+   } catch (err) {
+      return res.status(500).json({
+         message: 'Error Server',
+         error: err.message 
+      });
+   }
 }
 
 const createCustomer = async (req, res) => {
@@ -63,7 +76,7 @@ const createCustomer = async (req, res) => {
 
       const result = await Customers.create(data)
 
-      return res.status(400).json({
+      return res.status(201).json({
          message: "Success",
          data: result
       })
