@@ -89,7 +89,51 @@ const createCustomer = async (req, res) => {
 }
 
 const updateCustomer = async (req, res) => {
+   const {id} = req.params
+   try {
+      const data = {
+         "no_wa": req.body.no_wa,
+         "name": req.body.name,
+         "address": req.body.address,
+         "email": req.body.email,
+         "membership_tier_id": req.body.membership_tier_id,
+      }
 
+      const schema = {
+         no_wa: {type: "string", min: 5, max:20, optional: false},
+         name: {type:"string", min: 2, max: 100, optional: false},
+         address: {type: "string", min:3, max: 225, optional: true},
+         email: {type:"email", min:3, max:100, optional: true},
+         membership_tier_id: {type:"number", optional: false}
+      }
+
+      const validationResult = v.validate(data, schema)
+
+      if (validationResult !== true){
+         return res.status(400).json({
+            message: 'Validation Result',
+            data: validationResult
+         })
+      }
+
+      await Customers.update(data, {where: {id: id}})
+
+      return res.status(200).json({
+         message: 'Update Customer Success',
+         data: {
+            id: id,
+            ...data
+         }
+      })
+      
+   } catch (err) {
+      return res.status(500).json({
+         message: 'Error Server',
+         error: err.message 
+      });
+
+   }
+   
 }
 
 const destroyCustomer = async (req, res) => {
